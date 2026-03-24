@@ -4,6 +4,6 @@ class BarcodeScannerExample extends StatelessWidget {
   const BarcodeScannerExample({super.key});
   @override
   Widget build(BuildContext context) {
-    return const Text('Plataforma no soportada');
+    return const Text('Unsupported platform');
   }
 }

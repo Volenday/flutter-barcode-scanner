@@ -1,6 +1,8 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'barcode_scanner_poc_method_channel.dart';
+import 'barcode_scan_result.dart';
+import 'overlay_label_style.dart';
 
 /// The platform interface for the Barcode Scanner POC plugin.
 ///
@@ -23,6 +25,18 @@ abstract class BarcodeScannerPocPlatform extends PlatformInterface {
   /// Returns the platform version as a [String].
   Future<String?> getPlatformVersion();
 
-  /// Scans a barcode and returns the result as a [String].
-  Future<String?> scanBarcode();
+  /// Scans a barcode and returns a [BarcodeScanResult].
+  ///
+  /// If [overlayLabel] is non-null and non-empty, it is shown at the top-left of
+  /// the scanner on supported platforms (Android, iOS).
+  ///
+  /// [overlayLabelStyle] customizes colors, typography, and corners of the chip.
+  ///
+  /// If [overlayLabelCloseOnTap] is true, tapping the label closes the scanner;
+  /// [scanBarcodeResult] will then return [BarcodeScanOverlayBack].
+  Future<BarcodeScanResult> scanBarcode({
+    String? overlayLabel,
+    OverlayLabelStyle? overlayLabelStyle,
+    bool? overlayLabelCloseOnTap,
+  });
 }

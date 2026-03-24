@@ -12,7 +12,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(title: const Text('Plugin de Escáner de Códigos')),
+        appBar: AppBar(title: const Text('Barcode scanner plugin')),
         body: const Center(child: BarcodeScannerExample()),
       ),
     );
