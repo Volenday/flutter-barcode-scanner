@@ -245,7 +245,7 @@ class _BarcodeScannerPocWebWidgetState
         HtmlElementView(viewType: _elementId),
         if (showLabel)
           Positioned(
-            top: MediaQuery.paddingOf(context).top + 8,
+            top: MediaQuery.paddingOf(context).top + 8 + 16,
             left: 8,
             child: Material(
               color: Colors.transparent,

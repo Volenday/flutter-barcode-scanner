@@ -107,7 +107,7 @@ class BarcodeScannerViewController: UIViewController, AVCaptureVideoDataOutputSa
             container.addSubview(label)
             view.addSubview(container)
             NSLayoutConstraint.activate([
-                container.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+                container.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 32),
                 container.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
                 container.trailingAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
 
