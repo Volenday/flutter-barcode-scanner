@@ -123,7 +123,7 @@ class BarcodeScannerActivity : AppCompatActivity() {
             }
             val density = resources.displayMetrics.density
             val gapBelowSystemUi = (8 * density).toInt()
-            val extraLabelTopOffset = (16 * density).toInt()
+            val extraLabelTopOffset = (28 * density).toInt()
             val horizontalMargin = (12 * density).toInt()
             ViewCompat.setOnApplyWindowInsetsListener(overlay) { v, windowInsets ->
                 val insetTypes = WindowInsetsCompat.Type.statusBars() or
