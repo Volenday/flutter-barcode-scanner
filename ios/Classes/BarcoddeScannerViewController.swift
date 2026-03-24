@@ -87,9 +87,9 @@ class BarcodeScannerViewController: UIViewController, AVCaptureVideoDataOutputSa
         if let text = overlayLabel, !text.isEmpty {
             let container = UIView()
             container.translatesAutoresizingMaskIntoConstraints = false
-            container.backgroundColor = UIColor.black.withAlphaComponent(0.6)
-            container.layer.cornerRadius = 6
-            container.clipsToBounds = true
+            container.backgroundColor = .clear
+            container.layer.cornerRadius = 0
+            container.clipsToBounds = false
 
             let label = UILabel()
             label.text = text
@@ -191,6 +191,7 @@ class BarcodeScannerViewController: UIViewController, AVCaptureVideoDataOutputSa
 
         if let n = style["backgroundColor"] as? NSNumber {
             container.backgroundColor = uiColorFromArgb(Int(truncating: n))
+            container.clipsToBounds = true
         }
         if let n = style["borderRadius"] as? NSNumber {
             container.layer.cornerRadius = CGFloat(truncating: n)

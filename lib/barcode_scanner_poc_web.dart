@@ -222,7 +222,7 @@ class _BarcodeScannerPocWebWidgetState
     final showLabel = label != null && label.isNotEmpty;
 
     final s = widget.overlayLabelStyle;
-    final bg = s?.backgroundColor ?? Colors.black54;
+    final bg = s?.backgroundColor ?? Colors.transparent;
     final radius = s?.borderRadius ?? 6;
     final ph = s?.paddingHorizontal ?? 10;
     final pv = s?.paddingVertical ?? 6;

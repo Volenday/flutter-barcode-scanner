@@ -249,9 +249,9 @@ class BarcodeScannerActivity : AppCompatActivity() {
         val hasRadius = intent.hasExtra(EXTRA_STYLE_RADIUS_DP)
         if (hasBg || hasRadius) {
             val argb = if (hasBg) {
-                intent.getIntExtra(EXTRA_STYLE_BG, 0x99000000.toInt())
+                intent.getIntExtra(EXTRA_STYLE_BG, 0x00000000)
             } else {
-                0x99000000.toInt()
+                0x00000000
             }
             val radiusDp = if (hasRadius) {
                 intent.getFloatExtra(EXTRA_STYLE_RADIUS_DP, 6f)
