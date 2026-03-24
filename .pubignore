@@ -1,0 +1,16 @@
+# Archivos y carpetas ignorados al publicar en pub.dev
+android/barcode_scanner_poc_android.iml
+android/local.properties
+barcode_scanner_poc.iml
+pubspec.lock
+.idea/
+*.iml
+*.swp
+*.swo
+*.DS_Store
+*.log
+build/
+example/build/
+example/.dart_tool/
+example/.idea/
+example/pubspec.lock

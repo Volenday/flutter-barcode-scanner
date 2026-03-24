@@ -1,0 +1,39 @@
+name: barcode_scanner_poc
+description: "Plugin Flutter para escanear códigos de barras y QR en Android e iOS usando cámara nativa."
+version: 0.0.12
+homepage: https://github.com/juniorSacarias/flutter_poc_scanner_library
+repository: https://github.com/juniorSacarias/flutter_poc_scanner_library
+issue_tracker: https://github.com/juniorSacarias/flutter_poc_scanner_library
+documentation: https://github.com/juniorSacarias/flutter_poc_scanner_library#readme
+
+environment:
+  sdk: ^3.8.1
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_web_plugins:
+    sdk: flutter
+  js: ^0.6.3
+  plugin_platform_interface: ^2.0.2
+  web: ^1.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.ahastudio.barcode_scanner_poc
+        pluginClass: BarcodeScannerPocPlugin
+      ios:
+        pluginClass: BarcodeScannerPocPlugin
+      web:
+        pluginClass: BarcodeScannerPocWeb
+        fileName: barcode_scanner_poc_web.dart
+  assets:
+    - lib/web/barcode_scanner.js

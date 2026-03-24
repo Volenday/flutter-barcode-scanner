@@ -1,0 +1,14 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="com.ahastudio.barcode_scanner_poc">
+
+  <uses-permission android:name="android.permission.CAMERA" />
+
+  <application>
+    <activity
+      android:name=".BarcodeScannerActivity"
+      android:exported="true"
+      android:label="Barcode Scanner"
+      android:theme="@style/Theme.AppCompat.NoActionBar" />
+  </application>
+
+</manifest>

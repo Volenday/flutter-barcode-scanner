@@ -1,0 +1,24 @@
+name: barcode_scanner_poc_example
+description: "Demonstrates how to use the barcode_scanner_poc plugin."
+publish_to: 'none'
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  barcode_scanner_poc:
+    path: ../
+  cupertino_icons: ^1.0.8
+  web: ^1.1.1
+
+dev_dependencies:
+  integration_test:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
