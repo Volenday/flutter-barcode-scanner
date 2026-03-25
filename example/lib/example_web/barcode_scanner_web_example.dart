@@ -1,3 +1,4 @@
+import 'package:barcode_scanner_poc/barcode_scanner_poc.dart';
 import 'package:barcode_scanner_poc/barcode_scanner_poc_web.dart';
 import 'package:flutter/material.dart';
 
@@ -17,10 +18,13 @@ class _BarcodeScannerWebExampleState extends State<BarcodeScannerWebExample> {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text('Escanea un código usando la cámara web:'),
-        Text('Valor escaneado: $_barcodeValue'),
+        const Text('Scan a code using the web camera:'),
+        const Text(
+          'Top-left: styled label; tap to close the view (pop).',
+          style: TextStyle(fontSize: 12, color: Colors.black54),
+        ),
+        Text('Scanned value: $_barcodeValue'),
         const SizedBox(height: 20),
-        // Mostrar la configuración actual en pantalla
         Builder(
           builder: (context) {
             const webOptions = BarcodeScannerPocWebOptions(
@@ -33,7 +37,7 @@ class _BarcodeScannerWebExampleState extends State<BarcodeScannerWebExample> {
             );
             return Column(
               children: [
-                Text('Config actual: ${webOptions.toWebConfig()}'),
+                Text('Current config: ${webOptions.toWebConfig()}'),
                 const SizedBox(height: 10),
                 SizedBox(
                   width: webOptions.width?.toDouble() ?? 800,
@@ -45,6 +49,17 @@ class _BarcodeScannerWebExampleState extends State<BarcodeScannerWebExample> {
                       });
                     },
                     web: webOptions,
+                    overlayLabel: '← Back (web)',
+                    overlayLabelStyle: const OverlayLabelStyle(
+                      backgroundColor: Color(0xCC004D40),
+                      textColor: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      paddingHorizontal: 12,
+                      paddingVertical: 8,
+                      borderRadius: 8,
+                    ),
+                    overlayLabelCloseOnTap: true,
                   ),
                 ),
               ],

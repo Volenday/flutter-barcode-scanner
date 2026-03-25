@@ -16,19 +16,36 @@ public class BarcodeScannerPocPlugin: NSObject, FlutterPlugin {
         }
         
         if call.method == "scanBarcode" {
+            let args = call.arguments as? [String: Any]
+            let overlayLabel = args?["overlayLabel"] as? String
+            let trimmedLabel = overlayLabel?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let labelForUi = (trimmedLabel?.isEmpty == false) ? trimmedLabel : nil
+            let overlayStyle = args?["overlayLabelStyle"] as? [String: Any]
+            let closeOnTap = args?["overlayLabelCloseOnTap"] as? Bool ?? false
+
             let status = AVCaptureDevice.authorizationStatus(for: .video)
             if status == .authorized {
-                let scannerViewController = BarcodeScannerViewController(onBarcodeScanned: { barcodeValue in
-                    result(barcodeValue)
-                })
+                let scannerViewController = BarcodeScannerViewController(
+                    onScanResult: { payload in
+                        result(payload)
+                    },
+                    overlayLabel: labelForUi,
+                    overlayLabelStyle: overlayStyle,
+                    overlayLabelCloseOnTap: closeOnTap
+                )
                 rootViewController.present(scannerViewController, animated: true)
             } else if status == .notDetermined {
                 AVCaptureDevice.requestAccess(for: .video) { granted in
                     DispatchQueue.main.async {
                         if granted {
-                            let scannerViewController = BarcodeScannerViewController(onBarcodeScanned: { barcodeValue in
-                                result(barcodeValue)
-                            })
+                            let scannerViewController = BarcodeScannerViewController(
+                                onScanResult: { payload in
+                                    result(payload)
+                                },
+                                overlayLabel: labelForUi,
+                                overlayLabelStyle: overlayStyle,
+                                overlayLabelCloseOnTap: closeOnTap
+                            )
                             rootViewController.present(scannerViewController, animated: true)
                         } else {
                             result(FlutterError(code: "PERMISSION_DENIED", message: "Camera permission denied.", details: nil))

@@ -1,6 +1,6 @@
 name: barcode_scanner_poc
-description: "Plugin Flutter para escanear códigos de barras y QR en Android e iOS usando cámara nativa."
-version: 0.0.12
+description: "Flutter plugin to scan barcodes and QR codes on Android and iOS using the native camera."
+version: 0.0.14
 homepage: https://github.com/juniorSacarias/flutter_poc_scanner_library
 repository: https://github.com/juniorSacarias/flutter_poc_scanner_library
 issue_tracker: https://github.com/juniorSacarias/flutter_poc_scanner_library

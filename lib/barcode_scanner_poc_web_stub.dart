@@ -6,8 +6,24 @@ class BarcodeScannerPocWebWidget extends StatelessWidget {
   const BarcodeScannerPocWebWidget({
     super.key,
     required void Function(String) onScan,
-    required config,
+    required dynamic config,
+    this.overlayLabel,
+    this.overlayLabelStyle,
+    this.overlayLabelCloseOnTap = false,
+    this.onOverlayLabelTap,
   });
+
+  /// Ignored on non-web platforms; see the web implementation.
+  final String? overlayLabel;
+
+  /// Ignored on non-web platforms.
+  final Object? overlayLabelStyle;
+
+  /// Ignored on non-web platforms.
+  final bool overlayLabelCloseOnTap;
+
+  /// Ignored on non-web platforms.
+  final VoidCallback? onOverlayLabelTap;
 
   @override
   Widget build(BuildContext context) {

@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use, undefined_function, undefined_prefixed_name
 
 /// Web implementation of the BarcodeScannerPoc plugin.
 ///
@@ -23,12 +23,14 @@
 library;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:web/web.dart' as web;
 import 'dart:js_interop';
 import 'package:js/js_util.dart' as js_util;
 import 'dart:ui_web' as ui_web;
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+
+import 'overlay_label_style.dart';
 
 /// Main entry point for the web implementation of the plugin.
 class BarcodeScannerPocWeb {
@@ -139,7 +141,27 @@ class BarcodeScannerPocWebWidget extends StatefulWidget {
   /// Web-specific scanner options.
   final BarcodeScannerPocWebOptions? web;
 
-  const BarcodeScannerPocWebWidget({required this.onScan, this.web, super.key});
+  /// Optional label text at the top-left over the camera view.
+  final String? overlayLabel;
+
+  /// Chip styling; null fields keep defaults.
+  final OverlayLabelStyle? overlayLabelStyle;
+
+  /// If true, tapping the label pops the route (or calls [onOverlayLabelTap]).
+  final bool overlayLabelCloseOnTap;
+
+  /// Called when the label is tapped and [overlayLabelCloseOnTap] is true.
+  final VoidCallback? onOverlayLabelTap;
+
+  const BarcodeScannerPocWebWidget({
+    required this.onScan,
+    this.web,
+    this.overlayLabel,
+    this.overlayLabelStyle,
+    this.overlayLabelCloseOnTap = false,
+    this.onOverlayLabelTap,
+    super.key,
+  });
 
   @override
   State<BarcodeScannerPocWebWidget> createState() =>
@@ -174,7 +196,7 @@ class _BarcodeScannerPocWebWidgetState
           await Future.delayed(const Duration(milliseconds: 200));
           final hasFunction =
               (js_util.getProperty(js_util.globalThis, 'startHtml5Qrcode') !=
-              null);
+                  null);
           return !hasFunction;
         }).then((_) {
           final webConfig = widget.web?.toWebConfig();
@@ -196,6 +218,69 @@ class _BarcodeScannerPocWebWidgetState
 
   @override
   Widget build(BuildContext context) {
-    return HtmlElementView(viewType: _elementId);
+    final label = widget.overlayLabel?.trim();
+    final showLabel = label != null && label.isNotEmpty;
+
+    final s = widget.overlayLabelStyle;
+    final bg = s?.backgroundColor ?? Colors.transparent;
+    final radius = s?.borderRadius ?? 6;
+    final ph = s?.paddingHorizontal ?? 10;
+    final pv = s?.paddingVertical ?? 6;
+    final fs = s?.fontSize ?? 14;
+    final fw = s?.fontWeight ?? FontWeight.w500;
+    final tc = s?.textColor ?? Colors.white;
+
+    void handleOverlayTap() {
+      if (widget.onOverlayLabelTap != null) {
+        widget.onOverlayLabelTap!();
+      } else {
+        Navigator.maybeOf(context)?.maybePop();
+      }
+    }
+
+    return Stack(
+      fit: StackFit.expand,
+      clipBehavior: Clip.none,
+      children: [
+        HtmlElementView(viewType: _elementId),
+        if (showLabel)
+          Positioned(
+            top: MediaQuery.paddingOf(context).top + 8 + 28,
+            left: 8,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.overlayLabelCloseOnTap ? handleOverlayTap : null,
+                borderRadius: BorderRadius.circular(radius),
+                child: Ink(
+                  decoration: BoxDecoration(
+                    color: bg,
+                    borderRadius: BorderRadius.circular(radius),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: ph, vertical: pv),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: MediaQuery.sizeOf(context).width * 0.7,
+                      ),
+                      child: Text(
+                        label,
+                        textAlign: TextAlign.left,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: tc,
+                          fontSize: fs,
+                          fontWeight: fw,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
