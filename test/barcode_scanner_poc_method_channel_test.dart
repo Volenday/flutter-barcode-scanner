@@ -1,6 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:barcode_scanner_poc/barcode_scanner_poc_method_channel.dart';
+import 'package:barcode_scanner_poc/barcode_scan_result.dart';
+import 'package:barcode_scanner_poc/overlay_label_style.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -20,7 +23,7 @@ void main() {
               return 'mock-version';
             }
             if (methodCall.method == 'scanBarcode') {
-              return 'mock-barcode';
+              return {'outcome': 'success', 'code': 'mock-barcode'};
             }
             return null;
           });
@@ -32,7 +35,7 @@ void main() {
     });
 
     test(
-      'getPlatformVersion llama al método correcto y retorna valor',
+      'getPlatformVersion invokes the correct method and returns value',
       () async {
         final version = await methodChannelBarcodeScannerPoc
             .getPlatformVersion();
@@ -47,12 +50,46 @@ void main() {
       },
     );
 
-    test('scanBarcode llama al método correcto y retorna valor', () async {
+    test('scanBarcode invokes the correct method and returns value', () async {
       final barcode = await methodChannelBarcodeScannerPoc.scanBarcode();
-      expect(barcode, 'mock-barcode');
+      expect(barcode, isA<BarcodeScanSuccess>());
+      expect((barcode as BarcodeScanSuccess).code, 'mock-barcode');
       expect(log, [
         isA<MethodCall>().having((m) => m.method, 'method', 'scanBarcode'),
       ]);
+    });
+
+    test('scanBarcode passes overlayLabel to channel when non-empty', () async {
+      await methodChannelBarcodeScannerPoc.scanBarcode(
+        overlayLabel: '  My store  ',
+      );
+      expect(log.length, 1);
+      final call = log.single;
+      expect(call.method, 'scanBarcode');
+      expect(call.arguments, {'overlayLabel': 'My store'});
+    });
+
+    test('scanBarcode passes style and close-on-tap', () async {
+      await methodChannelBarcodeScannerPoc.scanBarcode(
+        overlayLabel: 'Back',
+        overlayLabelStyle: const OverlayLabelStyle(
+          backgroundColor: Colors.deepPurple,
+          textColor: Colors.white,
+          fontSize: 15,
+          borderRadius: 10,
+        ),
+        overlayLabelCloseOnTap: true,
+      );
+      final call = log.single;
+      expect(call.method, 'scanBarcode');
+      final args = Map<String, dynamic>.from(call.arguments as Map);
+      expect(args['overlayLabel'], 'Back');
+      expect(args['overlayLabelCloseOnTap'], true);
+      expect(args['overlayLabelStyle'], isA<Map>());
+      expect(
+        (args['overlayLabelStyle'] as Map).containsKey('backgroundColor'),
+        isTrue,
+      );
     });
   });
 }

@@ -29,6 +29,15 @@ class BarcodeScannerPocPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, A
         if (call.method == "scanBarcode") {
             this.result = result
             val intent = Intent(activity, BarcodeScannerActivity::class.java)
+            val overlayLabel = call.argument<String>("overlayLabel")?.trim().orEmpty()
+            if (overlayLabel.isNotEmpty()) {
+                intent.putExtra(BarcodeScannerActivity.EXTRA_OVERLAY_LABEL, overlayLabel)
+                val closeOnTap = call.argument<Boolean>("overlayLabelCloseOnTap") ?: false
+                intent.putExtra(BarcodeScannerActivity.EXTRA_OVERLAY_CLOSE_ON_TAP, closeOnTap)
+                @Suppress("UNCHECKED_CAST")
+                val styleMap = call.argument<Map<String, Any>>("overlayLabelStyle")
+                BarcodeScannerActivity.putStyleExtras(intent, styleMap)
+            }
             activity?.startActivityForResult(intent, SCAN_REQUEST_CODE)
         } else {
             result.notImplemented()
@@ -59,12 +68,26 @@ class BarcodeScannerPocPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, A
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?): Boolean {
         if (requestCode == SCAN_REQUEST_CODE) {
-            if (resultCode == Activity.RESULT_OK) {
-                val barcodeValue = data?.getStringExtra("barcode_value")
-                result?.success(barcodeValue)
-            } else {
-                result?.success(null)
+            val payload = when (resultCode) {
+                Activity.RESULT_OK -> {
+                    val outcome = data?.getStringExtra("outcome") ?: "success"
+                    when (outcome) {
+                        "success" -> {
+                            val code = data?.getStringExtra("barcode_value").orEmpty()
+                            mapOf("outcome" to "success", "code" to code)
+                        }
+                        "overlay_back" -> mapOf("outcome" to "overlay_back")
+                        else -> mapOf("outcome" to outcome)
+                    }
+                }
+                Activity.RESULT_CANCELED -> {
+                    val outcome = data?.getStringExtra("outcome") ?: "cancelled"
+                    mapOf("outcome" to outcome)
+                }
+                else -> mapOf("outcome" to "cancelled")
             }
+            result?.success(payload)
+            result = null
             return true
         }
         return false

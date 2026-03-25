@@ -1,3 +1,7 @@
+## 0.0.13
+
+* Add a custom label in the top left and add logic to make it function as a back button inside the scanner.
+
 ## 0.0.12
 
 * fix issues regarding last version of flash
@@ -30,8 +34,6 @@
 
 * Removed custom zoom in iOS camera, now uses the default zoom.
 * Minor improvements to the scanning experience on iOS.
-
-
 * Updated library documentation to reflect recent changes.
 
 ## 0.0.4

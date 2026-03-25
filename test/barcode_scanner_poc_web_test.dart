@@ -5,7 +5,7 @@ import 'package:barcode_scanner_poc/barcode_scanner_poc_web_stub.dart'
 
 void main() {
   group('BarcodeScannerPocWebWidget', () {
-    testWidgets('muestra mensaje en plataformas no web', (tester) async {
+    testWidgets('shows message on non-web platforms', (tester) async {
       await tester.pumpWidget(
         Directionality(
           textDirection: TextDirection.ltr,
@@ -13,13 +13,13 @@ void main() {
         ),
       );
       expect(
-        find.text('El escáner web solo está disponible en la web.'),
+        find.text('The web scanner is only available on web.'),
         findsOneWidget,
       );
     });
 
-    // Solo ejecutable en web real, pero se deja como referencia:
-    // testWidgets('llama a onScan cuando se escanea un código', (tester) async {
+    // Only runnable on real web; kept as reference:
+    // testWidgets('calls onScan when a code is scanned', (tester) async {
     //   String? scannedCode;
     //   await tester.pumpWidget(Directionality(
     //     textDirection: TextDirection.ltr,
@@ -27,7 +27,7 @@ void main() {
     //       scannedCode = code;
     //     }),
     //   ));
-    //   // Aquí deberías simular el escaneo, pero depende de la implementación JS.
+    //   // Simulate scanning here; depends on the JS implementation.
     //   // expect(scannedCode, isNotNull);
     // });
   });

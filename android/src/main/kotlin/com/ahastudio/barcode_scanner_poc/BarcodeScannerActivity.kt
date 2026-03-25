@@ -4,18 +4,27 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Typeface
+import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.View // Importar la clase View
-import android.widget.ImageButton
+import android.util.TypedValue
+import android.view.View
+import android.widget.FrameLayout
+import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.google.mlkit.vision.barcode.BarcodeScanner
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
@@ -24,12 +33,35 @@ import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.Executors
 
 class BarcodeScannerActivity : AppCompatActivity() {
+    companion object {
+        const val EXTRA_OVERLAY_LABEL = "overlay_label"
+        const val EXTRA_OVERLAY_CLOSE_ON_TAP = "overlay_close_on_tap"
+        const val EXTRA_STYLE_BG = "overlay_style_bg"
+        const val EXTRA_STYLE_TEXT = "overlay_style_text"
+        const val EXTRA_STYLE_TEXT_SIZE_SP = "overlay_style_text_size_sp"
+        const val EXTRA_STYLE_FONT_WEIGHT = "overlay_style_font_weight"
+        const val EXTRA_STYLE_PAD_H_DP = "overlay_style_pad_h_dp"
+        const val EXTRA_STYLE_PAD_V_DP = "overlay_style_pad_v_dp"
+        const val EXTRA_STYLE_RADIUS_DP = "overlay_style_radius_dp"
+
+        fun putStyleExtras(intent: Intent, style: Map<String, Any>?) {
+            if (style == null) return
+            (style["backgroundColor"] as? Number)?.toInt()?.let { intent.putExtra(EXTRA_STYLE_BG, it) }
+            (style["textColor"] as? Number)?.toInt()?.let { intent.putExtra(EXTRA_STYLE_TEXT, it) }
+            (style["fontSize"] as? Number)?.toFloat()?.let { intent.putExtra(EXTRA_STYLE_TEXT_SIZE_SP, it) }
+            (style["fontWeight"] as? Number)?.toInt()?.let { intent.putExtra(EXTRA_STYLE_FONT_WEIGHT, it) }
+            (style["paddingHorizontal"] as? Number)?.toFloat()?.let { intent.putExtra(EXTRA_STYLE_PAD_H_DP, it) }
+            (style["paddingVertical"] as? Number)?.toFloat()?.let { intent.putExtra(EXTRA_STYLE_PAD_V_DP, it) }
+            (style["borderRadius"] as? Number)?.toFloat()?.let { intent.putExtra(EXTRA_STYLE_RADIUS_DP, it) }
+        }
+    }
+
     private lateinit var previewView: PreviewView
     private lateinit var barcodeScanner: BarcodeScanner
     private val cameraExecutor = Executors.newSingleThreadExecutor()
     private val requestCameraPermission = 10
 
-    // NUEVA LÓGICA: variables para el control de la linterna
+    // Torch / camera control (reserved)
     private var camera: Camera? = null
     private var scanMethodOptions = BarcodeScannerOptions.Builder().setBarcodeFormats(
         Barcode.FORMAT_EAN_8,
@@ -46,6 +78,66 @@ class BarcodeScannerActivity : AppCompatActivity() {
         previewView = findViewById(R.id.previewView)
         barcodeScanner = BarcodeScanning.getClient(scanMethodOptions)
 
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    setResult(
+                        Activity.RESULT_OK,
+                        Intent().apply { putExtra("outcome", "cancelled") },
+                    )
+                    finish()
+                }
+            },
+        )
+
+        val overlay = findViewById<TextView>(R.id.overlayLabel)
+        val labelText = intent.getStringExtra(EXTRA_OVERLAY_LABEL)?.trim().orEmpty()
+        if (labelText.isNotEmpty()) {
+            overlay.text = labelText
+            overlay.visibility = View.VISIBLE
+            applyOverlayStyleFromIntent(overlay, intent)
+            val closeOnTap = intent.getBooleanExtra(EXTRA_OVERLAY_CLOSE_ON_TAP, false)
+            if (closeOnTap) {
+                overlay.isClickable = true
+                overlay.isFocusable = true
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    val typedValue = TypedValue()
+                    if (theme.resolveAttribute(
+                            android.R.attr.selectableItemBackgroundBorderless,
+                            typedValue,
+                            true
+                        )
+                    ) {
+                        val ripple = AppCompatResources.getDrawable(this, typedValue.resourceId)
+                        overlay.foreground = ripple
+                    }
+                }
+                overlay.setOnClickListener {
+                    setResult(
+                        Activity.RESULT_OK,
+                        Intent().apply { putExtra("outcome", "overlay_back") },
+                    )
+                    finish()
+                }
+            }
+            val density = resources.displayMetrics.density
+            val gapBelowSystemUi = (8 * density).toInt()
+            val extraLabelTopOffset = (28 * density).toInt()
+            val horizontalMargin = (12 * density).toInt()
+            ViewCompat.setOnApplyWindowInsetsListener(overlay) { v, windowInsets ->
+                val insetTypes = WindowInsetsCompat.Type.statusBars() or
+                    WindowInsetsCompat.Type.displayCutout()
+                val insets = windowInsets.getInsets(insetTypes)
+                val lp = v.layoutParams as FrameLayout.LayoutParams
+                lp.topMargin = insets.top + gapBelowSystemUi + extraLabelTopOffset
+                lp.marginStart = horizontalMargin + insets.left
+                v.layoutParams = lp
+                windowInsets
+            }
+            ViewCompat.requestApplyInsets(overlay)
+        }
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             startCamera()
         } else {
@@ -58,7 +150,11 @@ class BarcodeScannerActivity : AppCompatActivity() {
         if (requestCode == requestCameraPermission && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             startCamera()
         } else {
-            Toast.makeText(this, "Permisos de cámara denegados", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show()
+            setResult(
+                Activity.RESULT_OK,
+                Intent().apply { putExtra("outcome", "cancelled") },
+            )
             finish()
         }
     }
@@ -84,7 +180,7 @@ class BarcodeScannerActivity : AppCompatActivity() {
                     imageAnalysis
                 )
 
-                // --- Control de enfoque automático en el centro ---
+                // Center autofocus
                 val cameraControl = camera!!.cameraControl
                 val factory = SurfaceOrientedMeteringPointFactory(
                     previewView.width.toFloat(),
@@ -97,10 +193,10 @@ class BarcodeScannerActivity : AppCompatActivity() {
                 val action = FocusMeteringAction.Builder(point).build()
                 cameraControl.startFocusAndMetering(action)
 
-                // --- Control de zoom (ejemplo: zoom al 50%) ---
+                // Zoom (example: 50% linear zoom)
                 cameraControl.setLinearZoom(0.5f)
 
-                // --- Control de exposición (ejemplo: compensación +1 si está soportado) ---
+                // Exposure (example: +1 compensation if supported)
                 val cameraInfo = camera!!.cameraInfo
                 val exposureRange = cameraInfo.exposureState.exposureCompensationRange
                 if (exposureRange.contains(1)) {
@@ -108,7 +204,7 @@ class BarcodeScannerActivity : AppCompatActivity() {
                 }
 
             } catch (exc: Exception) {
-                Log.e("BarcodeScanner", "Error al iniciar la cámara", exc)
+                Log.e("BarcodeScanner", "Failed to start camera", exc)
             }
         }, ContextCompat.getMainExecutor(this))
     }
@@ -122,15 +218,17 @@ class BarcodeScannerActivity : AppCompatActivity() {
                 .addOnSuccessListener { barcodes ->
                     for (barcode in barcodes) {
                         val value = barcode.rawValue
-                        val resultIntent = Intent()
-                        resultIntent.putExtra("barcode_value", value)
+                        val resultIntent = Intent().apply {
+                            putExtra("outcome", "success")
+                            putExtra("barcode_value", value)
+                        }
                         setResult(Activity.RESULT_OK, resultIntent)
                         finish()
                         break
                     }
                 }
                 .addOnFailureListener {
-                    Log.e("BarcodeScanner", "Error al procesar el código de barras", it)
+                    Log.e("BarcodeScanner", "Failed to process barcode", it)
                 }
                 .addOnCompleteListener {
                     imageProxy.close()
@@ -143,5 +241,47 @@ class BarcodeScannerActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
+    }
+
+    private fun applyOverlayStyleFromIntent(tv: TextView, intent: Intent) {
+        val d = resources.displayMetrics.density
+        val hasBg = intent.hasExtra(EXTRA_STYLE_BG)
+        val hasRadius = intent.hasExtra(EXTRA_STYLE_RADIUS_DP)
+        if (hasBg || hasRadius) {
+            val argb = if (hasBg) {
+                intent.getIntExtra(EXTRA_STYLE_BG, 0x00000000)
+            } else {
+                0x00000000
+            }
+            val radiusDp = if (hasRadius) {
+                intent.getFloatExtra(EXTRA_STYLE_RADIUS_DP, 6f)
+            } else {
+                6f
+            }
+            val gd = GradientDrawable()
+            gd.setColor(argb)
+            gd.cornerRadius = radiusDp * d
+            tv.background = gd
+        }
+        if (intent.hasExtra(EXTRA_STYLE_TEXT)) {
+            tv.setTextColor(intent.getIntExtra(EXTRA_STYLE_TEXT, 0xFFFFFFFF.toInt()))
+        }
+        if (intent.hasExtra(EXTRA_STYLE_TEXT_SIZE_SP)) {
+            val sp = intent.getFloatExtra(EXTRA_STYLE_TEXT_SIZE_SP, 14f)
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, sp)
+        }
+        if (intent.hasExtra(EXTRA_STYLE_FONT_WEIGHT)) {
+            val w = intent.getIntExtra(EXTRA_STYLE_FONT_WEIGHT, 400)
+            tv.typeface = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                Typeface.create(Typeface.DEFAULT, w, false)
+            } else {
+                Typeface.create(Typeface.DEFAULT, if (w >= 600) Typeface.BOLD else Typeface.NORMAL)
+            }
+        }
+        if (intent.hasExtra(EXTRA_STYLE_PAD_H_DP) || intent.hasExtra(EXTRA_STYLE_PAD_V_DP)) {
+            val ph = intent.getFloatExtra(EXTRA_STYLE_PAD_H_DP, 10f) * d
+            val pv = intent.getFloatExtra(EXTRA_STYLE_PAD_V_DP, 6f) * d
+            tv.setPadding(ph.toInt(), pv.toInt(), ph.toInt(), pv.toInt())
+        }
     }
 }

@@ -4,7 +4,7 @@ import 'package:barcode_scanner_poc/barcode_scanner_poc_web_stub.dart';
 
 void main() {
   group('BarcodeScannerPocWebWidget (stub)', () {
-    testWidgets('muestra mensaje de solo disponible en web', (tester) async {
+    testWidgets('shows web-only message', (tester) async {
       await tester.pumpWidget(
         const Directionality(
           textDirection: TextDirection.ltr,
@@ -12,7 +12,7 @@ void main() {
         ),
       );
       expect(
-        find.text('El escáner web solo está disponible en la web.'),
+        find.text('The web scanner is only available on web.'),
         findsOneWidget,
       );
     });

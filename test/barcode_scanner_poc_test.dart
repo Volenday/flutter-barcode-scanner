@@ -13,7 +13,12 @@ class MockBarcodeScannerPocPlatform extends BarcodeScannerPocPlatform
       platformVersion ?? 'mock-version';
 
   @override
-  Future<String?> scanBarcode() async => scannedValue ?? 'mock-barcode';
+  Future<BarcodeScanResult> scanBarcode({
+    String? overlayLabel,
+    OverlayLabelStyle? overlayLabelStyle,
+    bool? overlayLabelCloseOnTap,
+  }) async =>
+      BarcodeScanSuccess(scannedValue ?? 'mock-barcode');
 }
 
 void main() {
@@ -27,19 +32,19 @@ void main() {
       BarcodeScannerPocPlatform.instance = mockPlatform;
     });
 
-    test('getPlatformVersion devuelve la versión mock', () async {
+    test('getPlatformVersion returns mock version', () async {
       mockPlatform.platformVersion = '1.2.3';
       final version = await BarcodeScannerPoc.platformVersion;
       expect(version, '1.2.3');
     });
 
-    test('scanBarcode devuelve el valor mock', () async {
+    test('scanBarcode returns mock value', () async {
       mockPlatform.scannedValue = '123456789';
       final result = await BarcodeScannerPoc.scanBarcode();
       expect(result, '123456789');
     });
 
-    test('scanBarcode maneja excepciones y retorna null', () async {
+    test('scanBarcode handles exceptions and returns null', () async {
       mockPlatform.scannedValue = null;
       BarcodeScannerPocPlatform.instance = _ThrowingBarcodeScannerPocPlatform();
       final result = await BarcodeScannerPoc.scanBarcode();
@@ -53,5 +58,10 @@ class _ThrowingBarcodeScannerPocPlatform extends BarcodeScannerPocPlatform {
   Future<String?> getPlatformVersion() async => throw Exception('error');
 
   @override
-  Future<String?> scanBarcode() async => throw Exception('error');
+  Future<BarcodeScanResult> scanBarcode({
+    String? overlayLabel,
+    OverlayLabelStyle? overlayLabelStyle,
+    bool? overlayLabelCloseOnTap,
+  }) async =>
+      throw Exception('error');
 }
