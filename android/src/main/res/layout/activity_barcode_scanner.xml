@@ -11,24 +11,45 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <TextView
-        android:id="@+id/overlayLabel"
+    <LinearLayout
+        android:id="@+id/overlayRow"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|start"
-        android:layout_marginStart="12dp"
-        android:layout_marginEnd="12dp"
-        android:layout_marginBottom="12dp"
-        android:layout_marginTop="0dp"
-        android:background="@android:color/transparent"
-        android:ellipsize="end"
-        android:maxLines="3"
-        android:paddingHorizontal="10dp"
-        android:paddingVertical="6dp"
-        android:textColor="#FFFFFF"
-        android:textSize="14sp"
+        android:layout_marginStart="@dimen/scanner_overlay_margin_start"
+        android:layout_marginTop="@dimen/scanner_overlay_margin_top"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
         android:visibility="gone"
-        tools:text="Label"
-        tools:visibility="visible" />
+        tools:visibility="visible">
+
+        <androidx.appcompat.widget.AppCompatImageButton
+            android:id="@+id/overlayBackButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/overlay_back_content_description"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:visibility="gone"
+            app:srcCompat="@drawable/ic_overlay_back"
+            app:tint="#FFFFFF"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/overlayLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:ellipsize="end"
+            android:maxLines="3"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="6dp"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:visibility="gone"
+            tools:text="Label"
+            tools:visibility="visible" />
+    </LinearLayout>
 
 </FrameLayout>

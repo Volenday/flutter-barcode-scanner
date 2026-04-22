@@ -9,7 +9,7 @@ android {
     // ✅ Corregir el namespace para que coincida con el de tu plugin
     namespace = "com.ahastudio.barcode_scanner_poc_example"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
