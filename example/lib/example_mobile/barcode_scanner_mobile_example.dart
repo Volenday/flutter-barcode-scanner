@@ -12,8 +12,9 @@ class BarcodeScannerMobileExample extends StatefulWidget {
 class _BarcodeScannerMobileExampleState
     extends State<BarcodeScannerMobileExample> {
   String _barcodeValue = 'Unknown';
-  final TextEditingController _overlayLabelController =
-      TextEditingController(text: 'Demo label');
+  final TextEditingController _overlayLabelController = TextEditingController(
+    text: 'Demo label',
+  );
 
   @override
   void dispose() {
@@ -24,7 +25,7 @@ class _BarcodeScannerMobileExampleState
   Future<void> scanBarcode() async {
     final label = _overlayLabelController.text.trim();
     final result = await BarcodeScannerPoc.scanBarcodeResult(
-      overlayLabel: label.isEmpty ? null : label,
+      overlayLabel: "",
       overlayLabelStyle: label.isEmpty
           ? null
           : const OverlayLabelStyle(
@@ -36,7 +37,7 @@ class _BarcodeScannerMobileExampleState
               paddingVertical: 8,
               borderRadius: 8,
             ),
-      overlayLabelCloseOnTap: label.isEmpty ? null : true,
+      overlayLabelCloseOnTap: true,
     );
 
     final logLine = switch (result) {
@@ -64,7 +65,7 @@ class _BarcodeScannerMobileExampleState
       children: [
         const Text('Tap the button to scan a code:'),
         const Text(
-          'Text appears top-left; tap it to close the scanner (cancel).',
+          'Back arrow top-left; optional text beside it. Leave overlay empty for icon only.',
           style: TextStyle(fontSize: 12, color: Colors.black54),
           textAlign: TextAlign.center,
         ),
@@ -76,7 +77,7 @@ class _BarcodeScannerMobileExampleState
             decoration: const InputDecoration(
               labelText: 'Overlay text',
               border: OutlineInputBorder(),
-              hintText: 'Empty = no overlay',
+              hintText: 'Empty = arrow only',
             ),
           ),
         ),

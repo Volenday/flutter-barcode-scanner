@@ -12,15 +12,16 @@ import android.util.Log
 import android.util.TypedValue
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.annotation.OptIn
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatImageButton
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -91,51 +92,39 @@ class BarcodeScannerActivity : AppCompatActivity() {
             },
         )
 
+        val overlayRow = findViewById<LinearLayout>(R.id.overlayRow)
         val overlay = findViewById<TextView>(R.id.overlayLabel)
+        val backButton = findViewById<AppCompatImageButton>(R.id.overlayBackButton)
+
         val labelText = intent.getStringExtra(EXTRA_OVERLAY_LABEL)?.trim().orEmpty()
-        if (labelText.isNotEmpty()) {
-            overlay.text = labelText
-            overlay.visibility = View.VISIBLE
-            applyOverlayStyleFromIntent(overlay, intent)
-            val closeOnTap = intent.getBooleanExtra(EXTRA_OVERLAY_CLOSE_ON_TAP, false)
+        val closeOnTap = intent.getBooleanExtra(EXTRA_OVERLAY_CLOSE_ON_TAP, false)
+        val hasLabel = labelText.isNotEmpty()
+        if (hasLabel || closeOnTap) {
+            overlayRow.visibility = View.VISIBLE
+            if (hasLabel) {
+                overlay.text = labelText
+                overlay.visibility = View.VISIBLE
+                applyOverlayStyleFromIntent(overlay, intent)
+            } else {
+                overlay.visibility = View.GONE
+            }
             if (closeOnTap) {
-                overlay.isClickable = true
-                overlay.isFocusable = true
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    val typedValue = TypedValue()
-                    if (theme.resolveAttribute(
-                            android.R.attr.selectableItemBackgroundBorderless,
-                            typedValue,
-                            true
-                        )
-                    ) {
-                        val ripple = AppCompatResources.getDrawable(this, typedValue.resourceId)
-                        overlay.foreground = ripple
-                    }
-                }
-                overlay.setOnClickListener {
+                backButton.visibility = View.VISIBLE
+                backButton.setOnClickListener {
                     setResult(
                         Activity.RESULT_OK,
                         Intent().apply { putExtra("outcome", "overlay_back") },
                     )
                     finish()
                 }
+            } else {
+                backButton.visibility = View.GONE
             }
-            val density = resources.displayMetrics.density
-            val gapBelowSystemUi = (8 * density).toInt()
-            val extraLabelTopOffset = (28 * density).toInt()
-            val horizontalMargin = (12 * density).toInt()
-            ViewCompat.setOnApplyWindowInsetsListener(overlay) { v, windowInsets ->
-                val insetTypes = WindowInsetsCompat.Type.statusBars() or
-                    WindowInsetsCompat.Type.displayCutout()
-                val insets = windowInsets.getInsets(insetTypes)
-                val lp = v.layoutParams as FrameLayout.LayoutParams
-                lp.topMargin = insets.top + gapBelowSystemUi + extraLabelTopOffset
-                lp.marginStart = horizontalMargin + insets.left
-                v.layoutParams = lp
+            ViewCompat.setOnApplyWindowInsetsListener(overlayRow) { v, windowInsets ->
+                applyOverlayRowMargins(v as LinearLayout, windowInsets)
                 windowInsets
             }
-            ViewCompat.requestApplyInsets(overlay)
+            overlayRow.post { requestOverlayRowMargins(overlayRow) }
         }
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
@@ -283,5 +272,25 @@ class BarcodeScannerActivity : AppCompatActivity() {
             val pv = intent.getFloatExtra(EXTRA_STYLE_PAD_V_DP, 6f) * d
             tv.setPadding(ph.toInt(), pv.toInt(), ph.toInt(), pv.toInt())
         }
+    }
+
+    private fun requestOverlayRowMargins(overlayRow: LinearLayout) {
+        val rootInsets = ViewCompat.getRootWindowInsets(overlayRow)
+        if (rootInsets == null) {
+            overlayRow.post { requestOverlayRowMargins(overlayRow) }
+            return
+        }
+        applyOverlayRowMargins(overlayRow, rootInsets)
+    }
+
+    private fun applyOverlayRowMargins(overlayRow: LinearLayout, windowInsets: WindowInsetsCompat) {
+        val insetTypes = WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.displayCutout()
+        val insets = windowInsets.getInsets(insetTypes)
+        val lp = overlayRow.layoutParams as FrameLayout.LayoutParams
+        val baseTop = resources.getDimensionPixelSize(R.dimen.scanner_overlay_margin_top)
+        val baseStart = resources.getDimensionPixelSize(R.dimen.scanner_overlay_margin_start)
+        lp.topMargin = baseTop + insets.top
+        lp.marginStart = baseStart + insets.left
+        overlayRow.layoutParams = lp
     }
 }

@@ -19,7 +19,7 @@ class BarcodeScannerViewController: UIViewController, AVCaptureVideoDataOutputSa
     /// Style map from Flutter (ARGB, logical dp, etc.).
     var overlayLabelStyle: [String: Any]?
 
-    /// If true, tapping the label closes the scanner.
+    /// If true, a back-arrow control closes the scanner (and the label is not tappable).
     var overlayLabelCloseOnTap: Bool = false
 
     private var overlayLabelView: UILabel?
@@ -84,46 +84,74 @@ class BarcodeScannerViewController: UIViewController, AVCaptureVideoDataOutputSa
         previewLayer.videoGravity = .resizeAspectFill
         view.layer.addSublayer(previewLayer)
 
-        if let text = overlayLabel, !text.isEmpty {
-            let container = UIView()
-            container.translatesAutoresizingMaskIntoConstraints = false
-            container.backgroundColor = .clear
-            container.layer.cornerRadius = 0
-            container.clipsToBounds = false
+        let labelText = overlayLabel?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let hasLabel = !labelText.isEmpty
+        let showBack = overlayLabelCloseOnTap
 
-            let label = UILabel()
-            label.text = text
-            label.textColor = .white
-            label.font = .systemFont(ofSize: 14, weight: .medium)
-            label.numberOfLines = 3
-            label.lineBreakMode = .byTruncatingTail
-            label.textAlignment = .left
-            label.translatesAutoresizingMaskIntoConstraints = false
+        if hasLabel || showBack {
+            let row = UIStackView()
+            row.axis = .horizontal
+            row.alignment = .center
+            row.spacing = 6
+            row.translatesAutoresizingMaskIntoConstraints = false
 
-            var padH: CGFloat = 10
-            var padV: CGFloat = 6
-            applyOverlayStyleMap(overlayLabelStyle, container: container, label: label, paddingH: &padH, paddingV: &padV)
-
-            container.addSubview(label)
-            view.addSubview(container)
-            NSLayoutConstraint.activate([
-                container.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 44),
-                container.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
-                container.trailingAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
-
-                label.topAnchor.constraint(equalTo: container.topAnchor, constant: padV),
-                label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: padH),
-                label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -padH),
-                label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -padV),
-            ])
-            overlayLabelView = label
-            overlayContainerView = container
-
-            if overlayLabelCloseOnTap {
-                container.isUserInteractionEnabled = true
-                let tap = UITapGestureRecognizer(target: self, action: #selector(overlayLabelTapped))
-                container.addGestureRecognizer(tap)
+            if showBack {
+                let backBtn = UIButton(type: .system)
+                if #available(iOS 13.0, *) {
+                    backBtn.setImage(UIImage(systemName: "chevron.backward"), for: .normal)
+                } else {
+                    backBtn.setTitle("\u{2039}", for: .normal)
+                    backBtn.titleLabel?.font = .systemFont(ofSize: 28, weight: .semibold)
+                }
+                backBtn.tintColor = .white
+                backBtn.addTarget(self, action: #selector(overlayBackTapped), for: .touchUpInside)
+                backBtn.accessibilityLabel = NSLocalizedString("Back", comment: "Scanner overlay back")
+                backBtn.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    backBtn.widthAnchor.constraint(equalToConstant: 44),
+                    backBtn.heightAnchor.constraint(equalToConstant: 44),
+                ])
+                row.addArrangedSubview(backBtn)
             }
+
+            if hasLabel {
+                let container = UIView()
+                container.translatesAutoresizingMaskIntoConstraints = false
+                container.backgroundColor = .clear
+                container.layer.cornerRadius = 0
+                container.clipsToBounds = false
+
+                let label = UILabel()
+                label.text = labelText
+                label.textColor = .white
+                label.font = .systemFont(ofSize: 14, weight: .medium)
+                label.numberOfLines = 3
+                label.lineBreakMode = .byTruncatingTail
+                label.textAlignment = .left
+                label.translatesAutoresizingMaskIntoConstraints = false
+
+                var padH: CGFloat = 10
+                var padV: CGFloat = 6
+                applyOverlayStyleMap(overlayLabelStyle, container: container, label: label, paddingH: &padH, paddingV: &padV)
+
+                container.addSubview(label)
+                NSLayoutConstraint.activate([
+                    label.topAnchor.constraint(equalTo: container.topAnchor, constant: padV),
+                    label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: padH),
+                    label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -padH),
+                    label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -padV),
+                ])
+                row.addArrangedSubview(container)
+                overlayLabelView = label
+                overlayContainerView = container
+            }
+
+            view.addSubview(row)
+            NSLayoutConstraint.activate([
+                row.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+                row.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
+                row.trailingAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            ])
         }
 
         // Center autofocus
@@ -135,12 +163,12 @@ class BarcodeScannerViewController: UIViewController, AVCaptureVideoDataOutputSa
         }
     }
 
-        override func viewWillAppear(_ animated: Bool) {
-            super.viewWillAppear(animated)
-            if (captureSession?.isRunning == false) {
-                captureSession.startRunning()
-            }
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if (captureSession?.isRunning == false) {
+            captureSession.startRunning()
         }
+    }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -175,7 +203,7 @@ class BarcodeScannerViewController: UIViewController, AVCaptureVideoDataOutputSa
         }
     }
 
-    @objc private func overlayLabelTapped() {
+    @objc private func overlayBackTapped() {
         onScanResult?(["outcome": "overlay_back"])
         dismiss(animated: true)
     }

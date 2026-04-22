@@ -32,11 +32,13 @@ class BarcodeScannerPocPlugin: FlutterPlugin, MethodChannel.MethodCallHandler, A
             val overlayLabel = call.argument<String>("overlayLabel")?.trim().orEmpty()
             if (overlayLabel.isNotEmpty()) {
                 intent.putExtra(BarcodeScannerActivity.EXTRA_OVERLAY_LABEL, overlayLabel)
-                val closeOnTap = call.argument<Boolean>("overlayLabelCloseOnTap") ?: false
-                intent.putExtra(BarcodeScannerActivity.EXTRA_OVERLAY_CLOSE_ON_TAP, closeOnTap)
                 @Suppress("UNCHECKED_CAST")
                 val styleMap = call.argument<Map<String, Any>>("overlayLabelStyle")
                 BarcodeScannerActivity.putStyleExtras(intent, styleMap)
+            }
+            val closeOnTap = call.argument<Boolean>("overlayLabelCloseOnTap") ?: false
+            if (closeOnTap) {
+                intent.putExtra(BarcodeScannerActivity.EXTRA_OVERLAY_CLOSE_ON_TAP, true)
             }
             activity?.startActivityForResult(intent, SCAN_REQUEST_CODE)
         } else {
