@@ -12,7 +12,7 @@ final class BarcodeScanSuccess extends BarcodeScanResult {
   final String code;
 }
 
-/// The user tapped the overlay label with [overlayLabelCloseOnTap] enabled.
+/// The user tapped the overlay back control with [overlayLabelCloseOnTap] enabled.
 final class BarcodeScanOverlayBack extends BarcodeScanResult {
   const BarcodeScanOverlayBack();
 }

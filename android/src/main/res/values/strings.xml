@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">BarcodeScannerPoc</string>
+    <string name="overlay_back_content_description">Volver</string>
 </resources>

@@ -32,8 +32,9 @@ abstract class BarcodeScannerPocPlatform extends PlatformInterface {
   ///
   /// [overlayLabelStyle] customizes colors, typography, and corners of the chip.
   ///
-  /// If [overlayLabelCloseOnTap] is true, tapping the label closes the scanner;
-  /// [scanBarcodeResult] will then return [BarcodeScanOverlayBack].
+  /// If [overlayLabelCloseOnTap] is true, a back-arrow control is shown; tapping
+  /// it closes the scanner and [scanBarcodeResult] returns [BarcodeScanOverlayBack].
+  /// The arrow can appear without [overlayLabel] (icon only) on Android and iOS.
   Future<BarcodeScanResult> scanBarcode({
     String? overlayLabel,
     OverlayLabelStyle? overlayLabelStyle,
